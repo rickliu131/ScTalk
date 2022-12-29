@@ -1,0 +1,24 @@
+.full {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.container {
+    width: 350px;
+    height: 400px;
+    margin-top: 15vh;
+}
+
+.panel-create-buttons {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.field-to-expand, .field-to-expand > * {
+    max-width: 16em !important;
+}
+
