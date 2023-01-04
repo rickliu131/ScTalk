@@ -2,7 +2,13 @@
 
 import React from 'react';
 import './Welcome.css';
-import { Button, Header, Divider, Grid, Segment, Form } from 'semantic-ui-react'
+import { Button, Header, Divider, Grid, Segment, Form, Loader, Dimmer, Modal } from 'semantic-ui-react';
+import axios from 'axios';
+
+// constants
+const url = "http://192.168.1.66:3002";
+const urlCreateRoom = url + '/createRoom';
+//
 
 class Welcome extends React.Component {
   constructor(props) {
@@ -14,39 +20,101 @@ class Welcome extends React.Component {
     this.createRoomSubmitClick = this.createRoomSubmit.bind(this);
     this.joinRoomSubmitClick = this.joinRoomSubmit.bind(this);
 
-    this.operationCancelClick = this.operationCancel.bind(this);
+    this.resetClick = this.reset.bind(this);
 
-    this.state = {stage: 'select'};
+    this.state = {
+      page: 'welcome',
+      loading: false,
+      error: false
+    };
   }
 
-  operationCancel() {
+  reset() {
     this.setState(() => ({
-      stage: 'select'
+      page: 'welcome',
+      loading: false,
+      error: false
     }));
   }
 
   createRoom() {
     // alert('creating');
     this.setState(() => ({
-      stage: 'create'
+      page: 'create-room',
+      loading: false,
+      error: false
     }));
   }
 
   createRoomSubmit() {
     // request createRoom API route
+    this.setState(() => ({
+      page: 'create-room',
+      loading: true,
+      error: false
+    }));
 
+    const roomName = document.getElementById('create-room-1').value;
+    const nickname = document.getElementById('create-room-2').value;
+
+    console.log('Create Room - Room Name: ' + roomName);
+    console.log('Create Room - User Nickname: ' + nickname);
+
+    axios.post(urlCreateRoom,
+      {roomName: roomName})
+      .then((res) => {
+        const roomID = res.data.roomID;
+        this.props.handler(roomID, nickname);
+        console.log('Passed RoomID ('+roomID+') and Nickname ('+nickname+') to the handler..');
+
+        // to be rerendered entirely
+      })
+      .catch((error) => {
+        this.setState(() => ({
+          page: 'create-room',
+          loading: false,
+          error: true
+        }));
+      });
+    // axios({
+    //   method: 'get',
+    //   url: "http://localhost:3001/test"
+    // }).then((res) => {
+    //   console.log('aaa');
+    //   console.log(res);
+    // })
+    // axios.get("http://localhost:3001/test")
   }
 
   joinRoom() {
     // alert('joining');
     this.setState(() => ({
-      stage: 'join'
+      page: 'join-room',
+      loading: false,
+      error: false
     }));
   }
 
   joinRoomSubmit() {
+    this.setState(() => ({
+      page: 'join-room',
+      loading: true,
+      error: false
+    }));
 
+    const roomID = document.getElementById('join-room-1').value;
+    const nickname = document.getElementById('join-room-2').value;
+
+    console.log('Join Room - Room ID: ' + roomID);
+    console.log('Join Room - User Nickname: ' + nickname);
+
+    this.props.handler(roomID, nickname);
+    console.log('Passed RoomID ('+roomID+') and Nickname ('+nickname+') to the handler..');
+
+    // to be rerendered entirely
   }
+
+  // ------
 
   welcomeCpnt() {
     return(
@@ -71,26 +139,40 @@ class Welcome extends React.Component {
     // input: room name, nickname
     return (
       <div>
-        <Header as='h2'>Create room</Header>
+        <Header as='h2'>Create Room</Header>
         <Segment placeholder>
-          
+          {this.state.loading ?
+          <Dimmer active inverted>
+            <Loader inverted>Loading..</Loader>
+          </Dimmer>
+          :
           <Form>
             <Form.Field className='field-to-expand'>
-              <label>Name of the chat room</label>
-              <input />
+              <label>Room Name</label>
+              <input id='create-room-1' />
             </Form.Field>
             <Form.Field className='field-to-expand'>
-              <label>Your nickname</label>
-              <input />
+              <label>Your Nickname</label>
+              <input id='create-room-2' />
             </Form.Field>
             <Form.Field className='field-to-expand'>
-              <div className='panel-create-buttons'>
+              <div className='panel-buttons'>
                 <Button primary onClick={this.createRoomSubmitClick}>Create & Join</Button>
-                <Button onClick={this.operationCancelClick}>Cancel</Button>
+                <Button onClick={this.resetClick}>Cancel</Button>
               </div>
             </Form.Field>
-          </Form>
-          
+          </Form>}
+          <Modal size='mini' open={this.state.error}>
+            <Modal.Header>Error</Modal.Header>
+            <Modal.Content>
+              <p>Unable to create room</p>
+            </Modal.Content>
+            <Modal.Actions>
+              <Button onClick={this.createRoomClick}>
+                Go back
+              </Button>
+            </Modal.Actions>
+          </Modal>
         </Segment>
       </div>
     );
@@ -99,20 +181,40 @@ class Welcome extends React.Component {
   joinCpnt() {
     return (
       <div>
-        <Header as='h2'>Join room</Header>
+        <Header as='h2'>Join Room</Header>
         <Segment placeholder>
+          {this.state.loading ? 
+          <Dimmer active inverted>
+            <Loader inverted>Loading..</Loader>
+          </Dimmer>
+          :
           <Form>
             <Form.Field width={9}>
-              <label>Room number</label>
-              <input placeholder='#...'/>
+              <label>Room ID</label>
+              <input placeholder='#...' id='join-room-1' />
             </Form.Field>
             <Form.Field width={9}>
-              <div className='panel-create-buttons'>
+              <label>Your Nickname</label>
+              <input id='join-room-2' />
+            </Form.Field>
+            <Form.Field width={9}>
+              <div className='panel-buttons'>
                 <Button primary onClick={this.joinRoomSubmitClick}>Join</Button>
-                <Button onClick={this.operationCancelClick}>Cancel</Button>
+                <Button onClick={this.resetClick}>Cancel</Button>
               </div>
             </Form.Field>
-          </Form>
+          </Form>}
+          <Modal size='mini' open={this.state.error}>
+            <Modal.Header>Error</Modal.Header>
+            <Modal.Content>
+              <p>Unable to join room</p>
+            </Modal.Content>
+            <Modal.Actions>
+              <Button onClick={this.joinRoomClick}>
+                Go back
+              </Button>
+            </Modal.Actions>
+          </Modal>
         </Segment>
       </div>
     );
@@ -120,11 +222,12 @@ class Welcome extends React.Component {
 
   render() {
     let element = '';
-    if (this.state.stage == 'select') {
+    let page = this.state.page;
+    if (page == 'welcome') {
       element = this.welcomeCpnt();
-    } else if (this.state.stage == 'create') {
+    } else if (page == 'create-room') {
       element = this.createCpnt();
-    } else if (this.state.stage == 'join') {
+    } else if (page == 'join-room') {
       element = this.joinCpnt();
     }
     

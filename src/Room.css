@@ -1,0 +1,165 @@
+.full {
+  width: 100%;
+  height: 100%;
+}
+
+.bar {
+  width: 100%;
+  height: 2.9em;
+}
+
+.rest {
+  width: 100%;
+
+  position: absolute;
+  top: 2.9em;
+  bottom: 0px;
+
+  display: flex;
+  flex-direction: row;
+
+  padding: 12px;
+}
+
+.chat {
+  flex: 7;
+  max-width: 70%;
+
+  height: 100%;
+
+  /* background-color: lightseagreen; */
+}
+
+.info {
+  flex: 3;
+  max-width: 30%;
+
+  height: 100%;
+  
+  /* background-color: lightcoral; */
+
+  padding-left: 0.4em;
+}
+
+.info-seg {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.chat-inner-all {
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+/* UNUSED */
+.chat-header {
+  width: 100%;
+
+  flex: 1;
+  max-height: 10%;
+
+  /* background-color: bisque; */
+}
+
+/* UNUSED */
+.chat-header .ui.header {
+  margin-top: 0.1em !important;
+  margin-bottom: 0.6em !important;
+}
+
+.chat-messages {
+  width: 100%;
+
+  flex: 7.5;
+  max-height: 75%;
+
+  overflow-y: auto;
+  
+  /* background-color: aqua; */
+}
+
+.chat-input {
+  width: 100%;
+
+  flex: 2.5;
+  max-height: 25%;
+
+  /* background-color: lightgreen; */
+}
+
+.chat-input-form {
+  padding-top: 0.4em;
+  height: 100%;
+}
+
+.chat-input-form-textarea {
+  height: calc(100% - 3em);
+
+  white-space: pre-wrap;
+}
+
+.chat-input-form-buttons {
+  height: 3em;
+  padding-top: 0.4em;
+  text-align: right;
+}
+
+.ui.comments {
+  max-width: 100% !important;
+}
+
+.ui.comments .comment {
+  margin: 0.1em 0 0  !important;
+  padding: 0.1em 0 0 !important;
+}
+
+.ui.segment {
+  margin: 0px !important;
+}
+
+.menu-left {
+  margin-left: 1.25em;
+  margin-top: 0.9em;
+}
+
+.menu-right {
+
+}
+
+.menu-right-msg {
+  margin-bottom: 0.3em !important;
+  margin-right: 0.3em !important;
+  margin-top: 0.3em !important;
+
+}
+
+.menu-right-msg-p {
+  font-size: small;
+}
+
+.menu-right-msg-status {
+  font-weight: bold;
+}
+
+
+.msg-content {
+  white-space: pre-line;
+}
+
+.load {
+  height: 100vh;
+}
+
+.msg-empty {
+  color: gray;
+}
+
+
+html, body, #root {
+  margin: 0px;
+  height: 100%;
+  overflow: hidden;
+}

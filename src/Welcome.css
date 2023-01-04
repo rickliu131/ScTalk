@@ -12,7 +12,7 @@
     margin-top: 15vh;
 }
 
-.panel-create-buttons {
+.panel-buttons {
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
