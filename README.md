@@ -1,10 +1,13 @@
 # ScTalk
+An online chat app that supports anonymous group chat and file transfer.<br>
 Demo: <a href='https://sctalk.app'>sctalk.app</a><br>
-An online chat app that supports anonymous group chat and file transfer. <br>
+Back-end code: <a href='https://github.com/rickliu131/ScTalk-Backend'>ScTalk-Backend</a>
+
 # Implementation
-React.js with SemanticUI.<br>
-Communicate with the server using HTTPS and Socket.IO (WebSocket based). <br>
+React.js + SemanticUI.<br>
+HTTPS + WebSocket-based Socket.IO
+
 # Usage  
-After cloned to local...<br>
-`npm install`<br>
-`npm run`<br>
+1. Clone the repository to local. `cd` to the cloned directory.
+2. `npm install`
+3. `npm run`
