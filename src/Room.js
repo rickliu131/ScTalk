@@ -1,8 +1,8 @@
-'use strict';
-
 import React from 'react';
-import './Room.css';
 import { Button, Segment, Form, Dropdown, Menu, Comment, TextArea, List, Checkbox, Message, Modal, Dimmer, Loader } from 'semantic-ui-react';
+import toast, { Toaster } from 'react-hot-toast';
+import URL from './address';
+import './Room.css';
 const { io } = require("socket.io-client");
 
 class Room extends React.Component {
@@ -12,6 +12,8 @@ class Room extends React.Component {
     this.sendMsgClick = this.sendMsg.bind(this);
     this.changeOpennessClick = this.changeOpenness.bind(this);
     this.deleteRoomClick = this.deleteRoom.bind(this);
+    this.fileInputChangeInvoked= this.fileInputChange.bind(this);
+    this.fileUploadClick = this.fileUpload.bind(this);
 
     // connectionStatus:
     // 'loading', loading to confirm status (have not received permit result yet)
@@ -25,7 +27,10 @@ class Room extends React.Component {
         isOpen: false,
         members: [],
         messages: []
-      }
+      },
+
+      deleteRoomConfirmShow: false,
+      filesSelected: []
     }
 
     // room info that won't change after determined
@@ -35,8 +40,10 @@ class Room extends React.Component {
       user: this.props.roomInfo.user
     }
 
-    const address = 'ws://192.168.1.66:3001';
-    this.socket = io(address);
+    this.messagesEnd = null;
+    this.fileInputRef = React.createRef();
+
+    this.socket = io(URL);
   }
 
   receive() {
@@ -52,7 +59,8 @@ class Room extends React.Component {
 
     // Room deleted
     // 'Connected' but not 'joined' user ('loading'/'forbidden') will not receive this 'disconnect' command
-    this.socket.on('disconnect', () => {
+    this.socket.on('disconnect', (reason) => {
+      console.log('### Disconnect reason: ' + reason+' ###');
       this.setState((prevState) => ({
         ...prevState,
         connectionStatus: 'deleted'
@@ -74,17 +82,14 @@ class Room extends React.Component {
           connectionStatus: 'forbidden'
         }));
       }
-      // this.setState((prevState) => ({
-      //   ...prevState,
-      //   connected: result == 1 ? true : false,
-      // }));
-      // this.discntReason = result == 1 ? '' : 'permit';
     })
 
     // this signals the user has formally joined the room, init package received
     this.socket.on('init cl', (roomName, roomStatus, roomMembers) => {
       this.roomConst.name = roomName;
-      this.setState({
+      this.setState((prevState) => ({
+        ...prevState,
+
         connectionStatus: 'joined',
 
         room: {
@@ -92,12 +97,7 @@ class Room extends React.Component {
           members: roomMembers,
           messages: []
         }
-      });
-
-      // console.log('init package: ');
-      // console.log(roomName);
-      // console.log(roomStatus);
-      // console.log(roomMembers);
+      }));
     });
 
     // after init methods
@@ -145,6 +145,28 @@ class Room extends React.Component {
       }));
     });
 
+    this.socket.on('msg-files cl', (fileNames, author, time) => {
+      // for security purposes...
+      // this is better done with receiving file links, rather than file names and synthesize the links
+      const fileUrls = fileNames.map((fileName) => (
+        <p className='filelinks'>
+          <a href={`${URL}/files/${this.roomConst.id}/${fileName}`} target="_blank">{fileName}</a>
+        </p>
+      ));
+      
+      this.setState((prevState) => ({
+        ...prevState,
+        room: {
+          ...prevState.room,
+          messages: [...prevState.room.messages, {
+            content: fileUrls,
+            author: author,
+            time: time
+          }]
+        }
+      }));
+    });
+
     this.socket.on('status cl', (status) => {
       this.setState((prevState) => ({
         ...prevState,
@@ -154,19 +176,16 @@ class Room extends React.Component {
         }
       }));
     });
-
-    // this.socket.on('nkname cl', (ack) => {
-    //   // ack is a callback function!
-    //   ack(this.nickname);
-    // });
   }
 
   // send methods, PROACTIVE
   // 'sv' means TO SERVER
   sendMsg() {
     const element = document.getElementById('text-input');
-    this.socket.emit('msg sv', element.value);
-    element.value = '';
+    if (element.value != '') {
+      this.socket.emit('msg sv', element.value);
+      element.value = '';
+    }
   }
 
   changeOpenness() {
@@ -174,15 +193,72 @@ class Room extends React.Component {
     this.socket.emit('status sv', status);
   }
 
+  deleteRoomConfirmShowSet(show) {
+    this.setState((prevState) => ({
+      ...prevState,
+      deleteRoomConfirmShow: show
+    }));
+  }
+
   deleteRoom() {
     const status = -1;
     this.socket.emit('status sv', status);
   }
 
+  fileInputChange() {
+    this.setState((prevState) => ({
+      ...prevState,
+      filesSelected: this.fileInputRef.current.files
+    }));
+    console.log('Number of selected files: '+this.fileInputRef.current.files.length);
+  }
+
+  async fileUpload() {
+    function readFileAsync(file) {
+      return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      })
+    }
+
+    let processedFiles = [];
+    const rawFiles = this.fileInputRef.current.files;
+    for (let i=0; i<rawFiles.length; ++i) {
+      const file = rawFiles[i];
+      const result = await readFileAsync(file);
+      processedFiles.push({
+        data: result,
+        name: file.name
+      });
+    }
+
+    this.socket.emit('msg-files sv', processedFiles);
+
+    this.fileInputRef.current.value = null;
+    this.fileInputChange();
+    toast("Files Sent", {duration: 1150, icon: '✅'});
+  }
+
   // if leaves the room, the server is responsbile for broadcasting updated members list
 
+  scrollToBottom = () => {
+    this.messagesEnd.scrollIntoView({ behavior: "smooth" });
+  }
+  
   componentDidMount() {
     this.receive();
+  }
+  
+  componentDidUpdate() {
+    if (this.messagesEnd != null) {
+      this.scrollToBottom();
+    } else {
+      // console.log('messagesEnd: null');
+    }
   }
 
   menuCpnt() {
@@ -196,24 +272,29 @@ class Room extends React.Component {
         </div>
 
         <Menu.Menu position='right' className='menu-right'>
-          <Message size='mini' className='menu-right-msg' color='grey'>
+          <Message size='mini' className='menu-right-msgcopy' warning onClick={() => {
+            navigator.clipboard.writeText(this.roomConst.id).then(() => {
+              toast("Room ID Copied", {duration: 1150, icon: '📋'});
+            }, () => {
+              // toast("Copy failed", {duration: 1150, icon: '❌'});
+            })
+          }}>
             <p className='menu-right-msg-p'>
               #{this.roomConst.id}
             </p>
           </Message>
-          <Message size='mini' className='menu-right-msg' {...mode}>
+          <Message size='mini' className='menu-right-msgstatus' {...mode}>
             <p className='menu-right-msg-p'>
               {isOpen ? 'Open to Join' : 'Closed'}
             </p>
           </Message>
           <Dropdown item icon='setting' simple>
             <Dropdown.Menu>
-            
               <Dropdown.Item>
                 <Checkbox label='Allow Joining' id='openness'
                           onClick={this.changeOpennessClick} checked={isOpen}/>
               </Dropdown.Item>
-              <Dropdown.Item onClick={this.deleteRoomClick}>
+              <Dropdown.Item onClick={() => {this.deleteRoomConfirmShowSet(true);}}>
                 Delete Room
               </Dropdown.Item>
             </Dropdown.Menu>
@@ -231,7 +312,7 @@ class Room extends React.Component {
       messagesRendered = this.state.room.messages.map((e) => (
         <Comment>
           <Comment.Content>
-            <Comment.Author as="a">{e.author}</Comment.Author>
+            <Comment.Author as="span">{e.author}</Comment.Author>
             <Comment.Metadata>
               <div>{new Date(e.time).toLocaleString()}</div>
             </Comment.Metadata>
@@ -239,6 +320,7 @@ class Room extends React.Component {
           </Comment.Content>
         </Comment>
       ));
+      messagesRendered.push(<div style={{ float:"left", clear: "both" }} ref={(el) => { this.messagesEnd = el; }}></div>);
     }
 
     return (
@@ -254,12 +336,30 @@ class Room extends React.Component {
                         onKeyPress={(e) => {
                           if (e.key == 'Enter') {
                             e.preventDefault();
-                            this.sendMsgClick();
+                            this.sendMsgClick(); 
                             document.getElementById('text-input').value='';
+                            
+                            //if text is empty, do nothing
                           }}} />
               <Segment.Inline className='chat-input-form-buttons'>
-                <Button icon='upload'/>
+                {/* <span className='filename'>{this.state.filesSelected.length == 0 ? '' : this.fileInputRef.current.files[0].name+'...'}</span> */}
+                <span className='filename'>{this.state.filesSelected.length == 0 ? '' : this.state.filesSelected.length+' 📄 Selected..'}</span>
+                
+                {this.state.filesSelected.length == 0 ? '' :
+                <Button compact negative onClick={() => {
+                  this.fileInputRef.current.value = null;
+                  this.fileInputChange();
+                  }}>Remove</Button>}
+                {this.state.filesSelected.length == 0 ? '' :
+                <Button compact positive hidden={this.state.filesSelected.length == 0} onClick={this.fileUploadClick}>Send</Button>}
+                
+                <input ref={this.fileInputRef} type="file" onChange={this.fileInputChangeInvoked} multiple hidden/>
+                {this.state.filesSelected.length > 0 ? '' :
+                  <Button icon='upload' onClick={() => this.fileInputRef.current.click()} />
+                }
+                {this.state.filesSelected.length > 0 ? '' :
                 <Button primary onClick={this.sendMsgClick}>Send Text</Button>
+                }
               </Segment.Inline>
 
             </Form>
@@ -288,6 +388,25 @@ class Room extends React.Component {
     );
   }
 
+  deleteRoomConfirmCpnt() {
+    return(
+      <Modal size='mini' open={this.state.deleteRoomConfirmShow} >
+        <Modal.Header>Delete Room</Modal.Header>
+        <Modal.Content>
+          <p>Are you sure you want to delete this room?</p>
+        </Modal.Content>
+        <Modal.Actions>
+          <Button negative onClick={() => {this.deleteRoomConfirmShowSet(false);}}>
+            No
+          </Button>
+          <Button positive onClick={this.deleteRoomClick}>
+            Yes
+          </Button>
+        </Modal.Actions>
+      </Modal>
+    );
+  }
+
   joinedCpnt() {
     return(
       <div className='full'>
@@ -298,6 +417,8 @@ class Room extends React.Component {
           {this.chatCpnt()}
           {this.infoCpnt()}
         </div>
+        {this.deleteRoomConfirmCpnt()}
+        <Toaster />
       </div>
     );
   }
@@ -318,7 +439,7 @@ class Room extends React.Component {
       if (this.state.connectionStatus == 'forbidden') {
         reason = 'Failed to connect to the room!';
       } else if (this.state.connectionStatus == 'deleted') {
-        reason = 'This room has been deleted!';
+        reason = 'Disconnected!';
       }
       element = (
         <Modal size='mini' open={true}>
@@ -345,7 +466,6 @@ class Room extends React.Component {
     } else {
       element = this.notJoinedCpnt();
     }
-
     return element;
   }
 }

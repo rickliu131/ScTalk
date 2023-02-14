@@ -1,5 +1,3 @@
-'use strict';
-
 import Welcome from './Welcome';
 import Room from './Room';
 import React from 'react';
@@ -28,7 +26,6 @@ class App extends React.Component {
         user: roomUser
       }
     });
-    console.log('enter!');
   }
 
   exit() {

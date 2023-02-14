@@ -1,14 +1,12 @@
-'use strict';
-
 import React from 'react';
-import './Welcome.css';
 import { Button, Header, Divider, Grid, Segment, Form, Loader, Dimmer, Modal } from 'semantic-ui-react';
 import axios from 'axios';
+import URL from './address';
+import './Welcome.css';
 
 // constants
-const url = "http://192.168.1.66:3002";
+const url = URL;
 const urlCreateRoom = url + '/createRoom';
-//
 
 class Welcome extends React.Component {
   constructor(props) {
@@ -38,7 +36,6 @@ class Welcome extends React.Component {
   }
 
   createRoom() {
-    // alert('creating');
     this.setState(() => ({
       page: 'create-room',
       loading: false,
@@ -66,7 +63,6 @@ class Welcome extends React.Component {
         const roomID = res.data.roomID;
         this.props.handler(roomID, nickname);
         console.log('Passed RoomID ('+roomID+') and Nickname ('+nickname+') to the handler..');
-
         // to be rerendered entirely
       })
       .catch((error) => {
@@ -76,18 +72,9 @@ class Welcome extends React.Component {
           error: true
         }));
       });
-    // axios({
-    //   method: 'get',
-    //   url: "http://localhost:3001/test"
-    // }).then((res) => {
-    //   console.log('aaa');
-    //   console.log(res);
-    // })
-    // axios.get("http://localhost:3001/test")
   }
 
   joinRoom() {
-    // alert('joining');
     this.setState(() => ({
       page: 'join-room',
       loading: false,
