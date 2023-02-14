@@ -8,6 +8,7 @@ React.js + SemanticUI<br>
 HTTPS + WebSocket-based Socket.IO
 
 # TO-DOs
+* Create a simple user manual
 * Improve the menu bar UI
 * Add progress bar showing the current progress of file upload
 * Highlight current user's nickname
