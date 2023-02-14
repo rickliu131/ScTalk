@@ -4,7 +4,7 @@ Demo: <a href='https://sctalk.app'>sctalk.app</a><br>
 Back-end code: <a href='https://github.com/rickliu131/ScTalk-Backend'>ScTalk-Backend</a>
 
 # Implementation
-React.js + SemanticUI.<br>
+React.js + SemanticUI<br>
 HTTPS + WebSocket-based Socket.IO
 
 # TO-DOs
