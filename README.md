@@ -10,7 +10,7 @@ HTTPS + WebSocket-based Socket.IO
 # Usage  
 1. Clone the repository to local. `cd` to the cloned directory.
 2. `npm install`
-3. `npm run`
+3. `npm start`
 
 # Author
 Yuxuan Liu
