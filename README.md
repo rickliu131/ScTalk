@@ -7,6 +7,13 @@ Back-end code: <a href='https://github.com/rickliu131/ScTalk-Backend'>ScTalk-Bac
 React.js + SemanticUI.<br>
 HTTPS + WebSocket-based Socket.IO
 
+# TO-DOs
+* Improve the menu bar UI
+* Add progress bar showing the current progress of file upload
+* Highlight current user's nickname
+* More convinient inviting mechanism
+* ...
+
 # Usage  
 1. Clone the repository to local. `cd` to the cloned directory.
 2. `npm install`
