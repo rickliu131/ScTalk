@@ -1,6 +1,6 @@
 # ScTalk
 An online chat app that supports anonymous group chat and file transfer.<br>
-Demo: <a href='https://sctalk.app'>sctalk.app</a><br>
+Demo: <a href='https://talk.elsewhere.one'>talk.elsewhere.one</a><br>
 Back-end code: <a href='https://github.com/rickliu131/ScTalk-Backend'>ScTalk-Backend</a>
 
 # Implementation
